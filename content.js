@@ -16,32 +16,36 @@ const defaultSettings = {
  * @property {string} label
  * @property {string} key
  * @property {string} storageName
- * @property {'left'|'right'} direction
+ * @property {'left'|'right'|'bottom'} direction
  * @property {HTMLDivElement} element
+ * @property {HTMLDivElement} parentElement
  */
 
 /** @type {ButtonProps[]} */
 const buttons = [
   {
-    label: "Microphone",
+    label: "Auto Disable Microphone",
     storageName: "disableMic",
     key: "d",
     direction: "right",
     element: null,
+    parentElement: null,
   },
   {
-    label: "Camera",
+    label: "Auto Disable Camera",
     storageName: "disableCam",
     key: "e",
     direction: "left",
     element: null,
+    parentElement: null,
   },
   {
     label: "Auto Join",
     storageName: "autoJoin",
     key: null,
-    direction: "top",
+    direction: "bottom",
     element: null,
+    parentElement: null,
   },
 ];
 
@@ -62,12 +66,23 @@ const buttonsLoaded = new Promise(async (resolve) => {
   /** @type {MutationObserver} */
   const observer = new MutationObserver(() => {
     if (
-      !buttons.every(
-        (button) =>
-          (button.element = document.body.querySelector(
-            `div[role="button"][aria-label$=" + ${button.key})" i][data-is-muted]`
-          ))
-      )
+      !buttons.every((button) => {
+        if (["disableCam", "disableMic"].includes(button.storageName)) {
+          return (
+            (button.element = document.body.querySelector(
+              `div[role="button"][aria-label$=" + ${button.key})" i][data-is-muted]`
+            )) && (button.parentElement = button.element.parentElement)
+          );
+        } else {
+          return (
+            (button.element = document.body.querySelector(
+              'div[role="button"][tabindex="0"][jsshadow].uArJ5e.UQuaGc.uyXBBb'
+            )) &&
+            (button.parentElement =
+              document.body.querySelector("div.oORaUb.NONs6c"))
+          );
+        }
+      })
     )
       return;
 
@@ -85,40 +100,47 @@ Promise.all([settingsLoaded, buttonsLoaded]).then(
   async ([/** Settings */ settings = {}]) => {
     settings = { ...defaultSettings, ...settings };
 
-    buttons.forEach(({ label, storageName, direction, element }) => {
-      /** @type {boolean} */
-      const autoTrigger = settings[storageName] === true;
+    console.log("plugin loaded");
+    buttons.forEach(
+      ({ label, storageName, direction, element, parentElement }) => {
+        /** @type {boolean} */
+        const autoTrigger = settings[storageName] === true;
 
-      /** @return {void} */
-      const trigger = () => {
-        if (element.dataset.isMuted === "false") element.click();
-      };
+        /** @return {void} */
+        const trigger = () => {
+          if (element.dataset.isMuted === "false" || storageName == "autoJoin")
+            element.click();
+        };
+        console.log(`${storageName}: ${element}`);
 
-      /** @type {HTMLDivElement} */
-      const tempDivEl = document.createElement("div");
-      tempDivEl.innerHTML = `
-      <label style="color:white; position:absolute; bottom:0; ${direction}:100px; z-index:1; cursor:pointer; white-space:nowrap;">
+        /** @type {HTMLDivElement} */
+        const tempDivEl = document.createElement("div");
+        tempDivEl.innerHTML = `
+      <label style="color:white; position:absolute; ${direction}:100px; z-index:1; cursor:pointer; white-space:nowrap;">
         <input type="checkbox" ${
           autoTrigger ? "checked" : ""
         } style="cursor:pointer; margin:0 4px 0 0; position:relative; top:1px;"/>
-        <span>Auto Disable ${label}</span>
+        <span>${label}</span>
       </label>
     `;
+        console.log(`${storageName}: ${tempDivEl.innerHTML}`);
 
-      /** @type {HTMLInputElement} */
-      const checkboxEl = tempDivEl.querySelector("input");
-      checkboxEl.addEventListener("change", ({ currentTarget }) => {
-        if (currentTarget.checked) trigger();
+        /** @type {HTMLInputElement} */
+        const checkboxEl = tempDivEl.querySelector("input");
+        checkboxEl.addEventListener("change", ({ currentTarget }) => {
+          if (currentTarget.checked && storageName != "autoJoin") trigger();
 
-        settings[storageName] = currentTarget.checked;
+          settings[storageName] = currentTarget.checked;
 
-        chrome.storage.sync.set(settings);
-      });
-      element.parentElement.append(tempDivEl.children[0]);
+          chrome.storage.sync.set(settings);
+        });
+        parentElement.append(tempDivEl.children[0]);
+        console.log(`${storageName}: ${parentElement.innerHTML}`);
 
-      if (!autoTrigger) return;
+        if (!autoTrigger) return;
 
-      trigger();
-    });
+        trigger();
+      }
+    );
   }
 );

@@ -6,9 +6,9 @@
 
 /** @type {Settings} */
 const defaultSettings = {
-  disableMic: false,
+  disableMic: true,
   disableCam: true,
-  autoJoin: true,
+  autoJoin: false,
 };
 
 /**
@@ -19,6 +19,7 @@ const defaultSettings = {
  * @property {'left'|'right'|'bottom'} direction
  * @property {HTMLDivElement} element
  * @property {HTMLDivElement} parentElement
+ * @property {boolean} forceDisable
  */
 
 /** @type {ButtonProps[]} */
@@ -63,6 +64,13 @@ const windowLoaded = new Promise(
 const buttonsLoaded = new Promise(async (resolve) => {
   await windowLoaded;
 
+  window.addEventListener("keydown", (e) => {
+    buttons.forEach((b) => (b.forceDisable = e.shiftKey));
+  });
+  window.addEventListener("keyup", (e) => {
+    buttons.forEach((b) => (b.forceDisable = e.shiftKey));
+  });
+
   /** @type {MutationObserver} */
   const observer = new MutationObserver(() => {
     if (
@@ -96,51 +104,46 @@ const buttonsLoaded = new Promise(async (resolve) => {
   });
 });
 
-Promise.all([settingsLoaded, buttonsLoaded]).then(
-  async ([/** Settings */ settings = {}]) => {
-    settings = { ...defaultSettings, ...settings };
+Promise.all([settingsLoaded, buttonsLoaded]).then(async ([settings = {}]) => {
+  settings = { ...defaultSettings, ...settings };
 
-    console.log("plugin loaded");
-    buttons.forEach(
-      ({ label, storageName, direction, element, parentElement }) => {
-        /** @type {boolean} */
-        const autoTrigger = settings[storageName] === true;
+  buttons.forEach((b) => {
+    const { label, storageName, direction, element, parentElement } = b;
+    /** @type {boolean} */
+    const autoTrigger = settings[storageName] === true;
 
-        /** @return {void} */
-        const trigger = () => {
-          if (element.dataset.isMuted === "false" || storageName == "autoJoin")
-            element.click();
-        };
-        console.log(`${storageName}: ${element}`);
+    /** @return {void} */
+    const trigger = () => {
+      if (element.dataset.isMuted === "false" || storageName == "autoJoin")
+        element.click();
+    };
 
-        /** @type {HTMLDivElement} */
-        const tempDivEl = document.createElement("div");
-        tempDivEl.innerHTML = `
-      <label style="color:white; position:absolute; ${direction}:100px; z-index:1; cursor:pointer; white-space:nowrap;">
-        <input type="checkbox" ${
-          autoTrigger ? "checked" : ""
-        } style="cursor:pointer; margin:0 4px 0 0; position:relative; top:1px;"/>
-        <span>${label}</span>
-      </label>
-    `;
-        console.log(`${storageName}: ${tempDivEl.innerHTML}`);
+    /** @type {HTMLDivElement} */
+    const tempDivEl = document.createElement("div");
+    tempDivEl.innerHTML = `
+          <label style="color:white; position:absolute; ${direction}:100px; z-index:1; cursor:pointer; white-space:nowrap;">
+            <input type="checkbox" ${
+              autoTrigger ? "checked" : ""
+            } style="cursor:pointer; margin:0 4px 0 0; position:relative; top:1px;"/>
+            <span>${label}</span>
+          </label>
+        `;
+    // console.log(`${storageName}: ${tempDivEl.innerHTML}`);
 
-        /** @type {HTMLInputElement} */
-        const checkboxEl = tempDivEl.querySelector("input");
-        checkboxEl.addEventListener("change", ({ currentTarget }) => {
-          if (currentTarget.checked && storageName != "autoJoin") trigger();
+    /** @type {HTMLInputElement} */
+    const checkboxEl = tempDivEl.querySelector("input");
+    checkboxEl.addEventListener("change", ({ currentTarget }) => {
+      if (currentTarget.checked && storageName != "autoJoin") trigger();
 
-          settings[storageName] = currentTarget.checked;
+      settings[storageName] = currentTarget.checked;
 
-          chrome.storage.sync.set(settings);
-        });
-        parentElement.append(tempDivEl.children[0]);
-        console.log(`${storageName}: ${parentElement.innerHTML}`);
+      chrome.storage.sync.set(settings);
+    });
+    parentElement.append(tempDivEl.children[0]);
+    // console.log(`${storageName}: ${parentElement.innerHTML}`);
 
-        if (!autoTrigger) return;
+    if (!autoTrigger || b.forceDisable) return;
 
-        trigger();
-      }
-    );
-  }
-);
+    trigger();
+  });
+});

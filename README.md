@@ -4,6 +4,10 @@
 [![Repo Stars](https://img.shields.io/github/stars/burkybang/Google-Meet-Auto-Disable-Mic-Cam?style=social)](../../stargazers)
 [![License](https://img.shields.io/github/license/burkybang/Google-Meet-Auto-Disable-Mic-Cam?logo=github)](LICENSE)
 
+## CHANGED FROM UPSTREAM
+* Added option to AutoJoin meetings as soon as the tab fully loads
+  * Can be overridden if you quickly press shift key while the tab loads
+
 ## Description [<img src="https://raw.githubusercontent.com/burkybang/Google-Meet-Auto-Disable-Camera/master/icon/icon128.png" align="right" width="128" height="128"/>](https://chrome.google.com/webstore/detail/dgggcpmnponfpgnifbdohajbdkbgjlhd)
 
 This simple extension provides options to default your microphone and/or camera to disabled.

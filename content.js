@@ -57,7 +57,7 @@ const settingsLoaded = new Promise((resolve) =>
 
 /** @type {Promise<void>} */
 const windowLoaded = new Promise(
-  (resolve) => (window.onload = () => resolve())
+  (resolve) => (window.onload = () => setTimeout(() => resolve(), 1000))
 );
 
 /** @type {Promise<void>} */
@@ -84,7 +84,8 @@ const buttonsLoaded = new Promise(async (resolve) => {
         } else {
           return (
             (button.element = document.body.querySelector(
-              'div[role="button"][tabindex="0"][jsshadow].uArJ5e.UQuaGc.uyXBBb'
+              // 'div[role="button"][tabindex="0"][jsshadow].uArJ5e.UQuaGc'
+              "button.VfPpkd-LgbsSe.VfPpkd-LgbsSe-OWXEXe-k8QpJ"
             )) &&
             (button.parentElement =
               document.body.querySelector("div.oORaUb.NONs6c"))

@@ -1,6 +1,6 @@
 {
   "name": "Google Meet Auto Disable Mic/Cam",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Provides options for defaulting microphone and/or camera to disabled when joining a Google Meet meeting. Additionally, makes it possible to automatically join the meeting. If auto join is enabled, pressing <shift> key while loading the page will temporarily disable the AutoJoin feature. But auto join happens quickly, so you have to reload the page a couple of times while quickly pressing <shift> in order to catch it.",
   "manifest_version": 2,
   "permissions": [
